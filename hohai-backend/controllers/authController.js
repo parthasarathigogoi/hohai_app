@@ -6,6 +6,19 @@ const User = require('../models/User');
 exports.register = async (req, res) => {
     const { email, password, userType } = req.body;
 
+    // Validate input
+    if (!email || !password) {
+        return res.status(400).json({ msg: 'Please provide email and password' });
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ msg: 'Please provide a valid email' });
+    }
+
+    if (password.length < 6) {
+        return res.status(400).json({ msg: 'Password must be at least 6 characters' });
+    }
+
     try {
         let user = await User.findOne({ email });
         if (user) {
@@ -15,7 +28,7 @@ exports.register = async (req, res) => {
         user = new User({
             email,
             password,
-            userType
+            userType: userType || 'customer'
         });
 
         const salt = await bcrypt.genSalt(10);
@@ -31,7 +44,7 @@ exports.register = async (req, res) => {
 
         jwt.sign(
             payload,
-            'supersecretjwtkey',
+            process.env.JWT_SECRET || 'supersecretjwtkey',
             { expiresIn: '1h' },
             (err, token) => {
                 if (err) throw err;
@@ -39,14 +52,23 @@ exports.register = async (req, res) => {
             }
         );
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error('Registration error:', err);
+        res.status(500).json({ msg: 'Server Error', error: err.message });
     }
 };
 
 // Login User
 exports.login = async (req, res) => {
     const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+        return res.status(400).json({ msg: 'Please provide email and password' });
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ msg: 'Please provide a valid email' });
+    }
 
     try {
         let user = await User.findOne({ email });
@@ -67,7 +89,7 @@ exports.login = async (req, res) => {
 
         jwt.sign(
             payload,
-            'supersecretjwtkey',
+            process.env.JWT_SECRET || 'supersecretjwtkey',
             { expiresIn: '1h' },
             (err, token) => {
                 if (err) throw err;
@@ -75,7 +97,7 @@ exports.login = async (req, res) => {
             }
         );
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error('Login error:', err);
+        res.status(500).json({ msg: 'Server Error', error: err.message });
     }
 };

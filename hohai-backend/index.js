@@ -12,13 +12,24 @@ const reviewRoutes = require('./routes/review');
 const app = express();
 const PORT = 5000;
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB Connected...'))
-.catch(err => console.error(err));
+// Connect to MongoDB with better error handling
+const connectDB = async () => {
+    try {
+        const conn = await mongoose.connect(process.env.MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+            socketTimeoutMS: 45000,
+        });
+        console.log(`MongoDB Connected: ${conn.connection.host}`);
+    } catch (error) {
+        console.error('MongoDB connection error:', error.message);
+        console.error('Please check your network connection and MongoDB URI');
+        // Don't exit the process, let the server start even if DB fails
+    }
+};
+
+connectDB();
 
 // Middleware
 app.use(cors());
