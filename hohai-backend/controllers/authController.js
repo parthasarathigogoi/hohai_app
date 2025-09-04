@@ -35,6 +35,7 @@ exports.register = async (req, res) => {
         user.password = await bcrypt.hash(password, salt);
 
         await user.save();
+        console.log('User saved successfully:', user);
 
         const payload = {
             user: {
@@ -53,6 +54,7 @@ exports.register = async (req, res) => {
         );
     } catch (err) {
         console.error('Registration error:', err);
+        console.error('Request body:', req.body);
         res.status(500).json({ msg: 'Server Error', error: err.message });
     }
 };
