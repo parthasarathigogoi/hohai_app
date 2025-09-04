@@ -15,8 +15,8 @@ exports.register = async (req, res) => {
         return res.status(400).json({ msg: 'Please provide a valid email' });
     }
 
-    if (password.length < 6) {
-        return res.status(400).json({ msg: 'Password must be at least 6 characters' });
+    if (password.length < 5) {
+        return res.status(400).json({ msg: 'Password must be at least 5 characters' });
     }
 
     try {
